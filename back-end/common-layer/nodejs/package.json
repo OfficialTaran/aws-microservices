@@ -1,0 +1,11 @@
+{
+  "name": "layer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.211.0",
+    "@aws-sdk/util-dynamodb": "^3.214.0",
+    "uuid": "^9.0.0",
+    "validate": "^5.2.0"
+  }
+}

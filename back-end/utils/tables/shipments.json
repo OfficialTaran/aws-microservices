@@ -1,0 +1,15 @@
+{
+  "name": "shipments",
+  "attribute_definitions": [
+    {
+      "AttributeName": "id",
+      "AttributeType": "S"
+    }
+  ],
+  "key_schema": [
+    {
+      "AttributeName": "id",
+      "KeyType": "HASH"
+    }
+  ]
+}

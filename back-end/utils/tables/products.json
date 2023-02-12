@@ -1,0 +1,15 @@
+{
+  "name": "products",
+  "attribute_definitions": [
+    {
+      "AttributeName": "id",
+      "AttributeType": "S"
+    }
+  ],
+  "key_schema": [
+    {
+      "AttributeName": "id",
+      "KeyType": "HASH"
+    }
+  ]
+}

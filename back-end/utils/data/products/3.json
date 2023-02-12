@@ -1,0 +1,11 @@
+{
+  "id": "3",
+  "name": "2x8 8' SPF",
+  "nominal_dimensions": {
+    "thickness": "2 in",
+    "width": "8 in",
+    "length": "8 ft"
+  },
+  "unit_quantity": 147,
+  "in_stock": 10
+}

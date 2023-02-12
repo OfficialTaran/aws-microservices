@@ -1,0 +1,14 @@
+{
+  "id": "1",
+  "date_received": "2015-12-21T17:42:34Z",
+  "goods_received": [
+    {
+      "product_id": "1",
+      "unit_quantity": 5
+    },
+    {
+      "product_id": "3",
+      "unit_quantity": 2
+    }
+  ]
+}

@@ -1,0 +1,307 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  STAGE:
+    Type: String
+    Description: Passed in as STAGE env to functions
+    Default: prod
+
+Resources:
+  # ##############################################################################
+  # Front End
+  myDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !Sub "${StaticBucket}.s3.amazonaws.com"
+            Id: static-bucket
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
+          - Id: api-gateway
+            DomainName: !Sub "${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com"
+            CustomOriginConfig:
+              HTTPSPort: '443'
+              OriginProtocolPolicy: https-only
+            OriginPath: /Prod
+        DefaultCacheBehavior:
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+          TargetOriginId: static-bucket
+          ViewerProtocolPolicy: redirect-to-https
+        CacheBehaviors:
+          - TargetOriginId: api-gateway
+            PathPattern: /api/*
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - PATCH
+              - POST
+              - DELETE
+            ForwardedValues:
+              QueryString: true
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: 'CloudFront OAI for Static App'
+  StaticBucket:
+    Type: 'AWS::S3::Bucket'
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref StaticBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject 
+            Effect: Allow
+            Resource: !Sub "arn:aws:s3:::${StaticBucket}/*"
+            Principal:
+              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+
+  SharedLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+        LayerName: SharedLayer
+        Description: Some code to share with the other lambda functions
+        ContentUri: common-layer
+        CompatibleRuntimes:
+            - nodejs16.x
+        RetentionPolicy: Delete
+  
+  # ##############################################################################
+  # Functions
+
+  productsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.rootHandler
+      Runtime: nodejs16.x
+      CodeUri: src/Products
+      Timeout: 10
+      Environment:
+        Variables:
+          STAGE: !Ref STAGE
+      Policies:
+        - !Ref dynamoDBPolicy
+      Layers:
+        - !Ref SharedLayer
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /api/products
+            Method: GET
+        ApiID:
+          Type: Api
+          Properties:
+            Path: /api/products/{id}
+            Method: GET
+  ordersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.rootHandler
+      Runtime: nodejs16.x
+      CodeUri: src/Orders
+      Timeout: 10
+      Environment:
+        Variables:
+          STAGE: !Ref STAGE
+      Policies:
+        - !Ref dynamoDBPolicy
+      Layers:
+        - !Ref SharedLayer
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /api/orders
+            Method: GET
+        ApiPost:
+          Type: Api
+          Properties:
+            Path: /api/orders
+            Method: POST
+        ApiID:
+          Type: Api
+          Properties:
+            Path: /api/orders/{id}
+            Method: GET
+        ApiIDDelete:
+          Type: Api
+          Properties:
+            Path: /api/orders/{id}
+            Method: DELETE
+  inventoryProductsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.rootHandler
+      Runtime: nodejs16.x
+      CodeUri: src/InventoryProducts
+      Timeout: 10
+      Environment:
+        Variables:
+          STAGE: !Ref STAGE
+      Policies:
+        - !Ref dynamoDBPolicy
+      Layers:
+        - !Ref SharedLayer
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /api/inventory/products
+            Method: GET
+        ApiPost:
+          Type: Api
+          Properties:
+            Path: /api/inventory/products
+            Method: POST
+        ApiID:
+          Type: Api
+          Properties:
+            Path: /api/inventory/products/{id}
+            Method: GET
+        ApiIDPut:
+          Type: Api
+          Properties:
+            Path: /api/inventory/products/{id}
+            Method: PUT
+  shipmentsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.rootHandler
+      Runtime: nodejs16.x
+      CodeUri: src/Shipments
+      Timeout: 10
+      Environment:
+        Variables:
+          STAGE: !Ref STAGE
+      Policies:
+        - !Ref dynamoDBPolicy
+      Layers:
+        - !Ref SharedLayer
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /api/inventory/shipments
+            Method: GET
+        ApiPost:
+          Type: Api
+          Properties:
+            Path: /api/inventory/shipments
+            Method: POST
+        ApiID:
+          Type: Api
+          Properties:
+            Path: /api/inventory/shipments/{id}
+            Method: GET
+  inventoryOrdersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.rootHandler
+      Runtime: nodejs16.x
+      CodeUri: src/OrderPicking
+      Timeout: 10
+      Environment:
+        Variables:
+          STAGE: !Ref STAGE
+      Policies:
+        - !Ref dynamoDBPolicy
+      Layers:
+        - !Ref SharedLayer
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /api/inventory/orders
+            Method: GET
+        ApiID:
+          Type: Api
+          Properties:
+            Path: /api/inventory/orders/{id}
+            Method: GET
+        ApiIDPatch:
+          Type: Api
+          Properties:
+            Path: /api/inventory/orders/{id}
+            Method: PATCH
+
+  # ##############################################################################
+  # Database
+
+  productsTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: products
+      PrimaryKey:
+        Name: id
+        Type: String
+  ordersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: orders
+      PrimaryKey:
+        Name: id
+        Type: String
+  shipmentsTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: shipments
+      PrimaryKey:
+        Name: id
+        Type: String
+
+  dynamoDBPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: DynamoDBAccess
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          - dynamodb:DeleteItem
+          - dynamodb:PutItem
+          - dynamodb:Scan
+          - dynamodb:Query
+          - dynamodb:UpdateItem
+          - dynamodb:BatchWriteItem
+          - dynamodb:BatchGetItem
+          - dynamodb:DescribeTable
+          - dynamodb:ConditionCheckItem
+          - dynamodb:PartiQLUpdate
+          - dynamodb:PartiQLSelect
+          - dynamodb:PartiQLInsert
+          - dynamodb:PartiQLDelete
+          Resource:
+          - !GetAtt shipmentsTable.Arn
+          - !GetAtt ordersTable.Arn
+          - !GetAtt productsTable.Arn
+
+Outputs:
+  WebEndpoint:
+    Description: API Gateway endpoint URL for Prod stage
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  S3BucketSecureURL:
+    Value: !Sub "https://${StaticBucket.DomainName}"
+    Description: Name of S3 bucket to holding Front End Content
+  SiteURL:
+    Value: !Sub "https://${myDistribution.DomainName}"
+    Description: URL of the Application

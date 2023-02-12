@@ -1,0 +1,13 @@
+version: "2"
+services:
+  dynamo-local:
+    image: amazon/dynamodb-local
+    networks:
+      - sam_bridge
+    expose:
+      - 8000
+    ports:
+      - "8000:8000"
+networks:
+  sam_bridge:
+    driver: bridge

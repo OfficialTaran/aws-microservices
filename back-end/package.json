@@ -1,0 +1,12 @@
+{
+  "name": "delete-test-01",
+  "description": "delete-test-01-description",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "local-db": "pwsh ./utils/StartLocalDB.ps1",
+    "start": "sam local start-api --warm-containers EAGER --docker-network utils_sam_bridge --parameter-overrides STAGE=dev",
+    "deploy": "sam deploy --capabilities CAPABILITY_NAMED_IAM",
+    "cleanup-docker": "pwsh ./utils/RemoveAllContainers.ps1"
+  }
+}

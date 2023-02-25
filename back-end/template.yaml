@@ -21,7 +21,7 @@ Resources:
             S3OriginConfig:
               OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
           - Id: api-gateway
-            DomainName: !Sub "${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com"
+            DomainName: !Sub "${Api}.execute-api.${AWS::Region}.amazonaws.com"
             CustomOriginConfig:
               HTTPSPort: '443'
               OriginProtocolPolicy: https-only
@@ -84,7 +84,7 @@ Resources:
         DefaultAuthorizer: CustomerAuthorizer
         Authorizers:
           CustomerAuthorizer:
-            UserPoolArn: !GetAtt CognitoUserPool.Arn
+            UserPoolArn: !GetAtt CustomerUserPool.Arn
   CustomerUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -207,6 +207,7 @@ Resources:
         ApiPost:
           Type: Api
           Properties:
+            RestApiId: !Ref Api
             Path: /api/inventory/products
             Method: POST
         ApiID:
@@ -344,7 +345,7 @@ Resources:
 Outputs:
   WebEndpoint:
     Description: API Gateway endpoint URL for Prod stage
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   S3BucketSecureURL:
     Value: !Sub "https://${StaticBucket.DomainName}"
     Description: Name of S3 bucket to holding Front End Content

@@ -11,6 +11,7 @@ Parameters:
 Resources:
   # ##############################################################################
   # Front End
+  
   myDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -21,7 +22,7 @@ Resources:
             S3OriginConfig:
               OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}"
           - Id: api-gateway
-            DomainName: !Sub "${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com"
+            DomainName: !Sub "${BackendApi}.execute-api.${AWS::Region}.amazonaws.com"
             CustomOriginConfig:
               HTTPSPort: '443'
               OriginProtocolPolicy: https-only
@@ -73,6 +74,42 @@ Resources:
             Principal:
               CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
 
+  # ##############################################################################
+  # Auth
+
+  BackendApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors: "'*'"
+      Auth:
+        DefaultAuthorizer: CustomerAuthorizer
+        Authorizers:
+          CustomerAuthorizer:
+            UserPoolArn: !GetAtt CustomerUserPool.Arn
+  CustomerUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: CustomerUserPool
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+      UsernameAttributes:
+        - email
+      Schema:
+        - AttributeDataType: String
+          Name: email
+          Required: false
+  CustomerCognitoClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref CustomerUserPool
+      ClientName: CustomerCognitoClient
+      GenerateSecret: false
+  
+  # ##############################################################################
+  # Functions
+
   SharedLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -82,9 +119,6 @@ Resources:
         CompatibleRuntimes:
             - nodejs16.x
         RetentionPolicy: Delete
-  
-  # ##############################################################################
-  # Functions
 
   productsFunction:
     Type: AWS::Serverless::Function
@@ -298,7 +332,7 @@ Resources:
 Outputs:
   WebEndpoint:
     Description: API Gateway endpoint URL for Prod stage
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Value: !Sub "https://${BackendApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   S3BucketSecureURL:
     Value: !Sub "https://${StaticBucket.DomainName}"
     Description: Name of S3 bucket to holding Front End Content

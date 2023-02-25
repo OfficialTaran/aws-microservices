@@ -11,7 +11,7 @@ Parameters:
 Resources:
   # ##############################################################################
   # Front End
-  myDistribution:
+  Distribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
@@ -81,14 +81,14 @@ Resources:
       StageName: Prod
       Cors: "'*'"
       Auth:
-        DefaultAuthorizer: MyCognitoAuthorizer
+        DefaultAuthorizer: CustomerAuthorizer
         Authorizers:
-          MyCognitoAuthorizer:
+          CustomerAuthorizer:
             UserPoolArn: !GetAtt CognitoUserPool.Arn
-  CognitoUserPool:
+  CustomerUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: CognitoUserPoolName
+      UserPoolName: CustomerUserPool
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -98,11 +98,11 @@ Resources:
         - AttributeDataType: String
           Name: email
           Required: false
-  CognitoClient:
+  CustomerCognitoClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      UserPoolId: !Ref CognitoUserPool
-      ClientName: CognitoUserPoolClientName
+      UserPoolId: !Ref CustomerUserPool
+      ClientName: CustomerCognitoClient
       GenerateSecret: false
   
   # ##############################################################################
@@ -349,5 +349,5 @@ Outputs:
     Value: !Sub "https://${StaticBucket.DomainName}"
     Description: Name of S3 bucket to holding Front End Content
   SiteURL:
-    Value: !Sub "https://${myDistribution.DomainName}"
+    Value: !Sub "https://${Distribution.DomainName}"
     Description: URL of the Application

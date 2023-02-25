@@ -138,11 +138,13 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/products
             Method: GET
         ApiID:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/products/{id}
             Method: GET
   ordersFunction:
@@ -163,21 +165,25 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/orders
             Method: GET
         ApiPost:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/orders
             Method: POST
         ApiID:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/orders/{id}
             Method: GET
         ApiIDDelete:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/orders/{id}
             Method: DELETE
   inventoryProductsFunction:
@@ -198,21 +204,25 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/inventory/products
             Method: GET
         ApiPost:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/inventory/products
             Method: POST
         ApiID:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/inventory/products/{id}
             Method: GET
         ApiIDPut:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/inventory/products/{id}
             Method: PUT
   shipmentsFunction:
@@ -233,16 +243,19 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/inventory/shipments
             Method: GET
         ApiPost:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/inventory/shipments
             Method: POST
         ApiID:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/inventory/shipments/{id}
             Method: GET
   inventoryOrdersFunction:
@@ -263,16 +276,19 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/inventory/orders
             Method: GET
         ApiID:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/inventory/orders/{id}
             Method: GET
         ApiIDPatch:
           Type: Api
           Properties:
+            RestApiId: !Ref BackendApi
             Path: /api/inventory/orders/{id}
             Method: PATCH
 

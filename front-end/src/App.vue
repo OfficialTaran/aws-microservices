@@ -20,6 +20,8 @@ import Cart from './components/Cart.vue'
 import Orders from './components/Orders/Orders.vue'
 import Inventory from './components/Inventory/Main.vue'
 
+import { tokenExchange } from '@utils/api.js'
+
 export default {
   name: 'App',
   metaInfo: {
@@ -31,6 +33,9 @@ export default {
     Cart,
     Orders,
     Inventory
+  },
+  created () {
+    tokenExchange()
   },
   data () {
     return {

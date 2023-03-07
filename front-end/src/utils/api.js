@@ -1,7 +1,8 @@
 import pkg from 'axios'
+import Oidc from 'oidc-client'
 const { request } = pkg
 
-let domain = `${window.location.protocol}//${window.location.host}`
+const domain = window.location.origin
 
 const makeRequest = ({ verb = 'GET', route, data = null, params = null }) => {
 
@@ -22,4 +23,24 @@ const makeRequest = ({ verb = 'GET', route, data = null, params = null }) => {
 
 }
 
-export { makeRequest as request }
+const UserManager = new Oidc.UserManager({
+  authority: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_Fi4vdm4dn',
+  client_id: '5pb45an8os06kikt5j64udts0',
+  redirect_uri: domain,
+  response_type: 'code',
+  scope: 'aws.cognito.signin.user.admin',
+  userStore: new Oidc.WebStorageStateStore()
+})
+
+const tokenExchange = async () => {
+  const params = new URLSearchParams(window.location.search.substring(1))
+  if(params.has('code') && params.has('state')) {
+    UserManager.signinRedirectCallback().then(user => {
+      console.log(user)
+      const url = document.location.href
+      window.history.pushState({}, "", url.split("?")[0])
+    })
+  }
+}
+
+export { makeRequest as request, tokenExchange, UserManager }

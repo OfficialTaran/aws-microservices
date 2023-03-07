@@ -13,6 +13,7 @@
     "bootstrap-vue": "2.22.0",
     "core-js": "^3.8.3",
     "lodash": "^4.17.21",
+    "oidc-client": "^1.11.5",
     "path": "^0.12.7",
     "vue": "^2.6.14",
     "vue-meta": "^2.4.0",
